@@ -1,0 +1,58 @@
+version: '3.9'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: padel_db
+      MYSQL_USER: padel_user
+      MYSQL_PASSWORD: padel_password
+    ports:
+      - 3306:3306
+    # expose:
+    #   - 3307
+    restart: always
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./db/padel_db.sql:/docker-entrypoint-initdb.d/padel_db.sql
+    # networks:
+    #   - connection
+  
+  phpmyadmin_cuy:
+    image: phpmyadmin:5.2.0
+    container_name: padel_phpmyadmin
+    environment:
+        PMA_HOST: mysql
+        PMA_PORT: 3306
+    ports:
+        - 8080:80
+    depends_on:
+      - mysql
+    # networks:
+    #   - connection
+
+  web_nya_nih:
+    image: fadhelmurphy/nextjs_prisma_mysql_crud
+    container_name: padel_web
+    platform: "linux/amd64"
+    environment:
+      - DATABASE_URL=mysql://root:root@mysql:3306/padel_db?connect_timeout=5
+    # build:
+    #   context: ./web
+      # args:
+      # - DATABASE_URL=mysql://root:root@mysql:3306/padel_db?connect_timeout=5
+    ports:
+        - 3000:3000
+    depends_on:
+      - mysql
+    # networks:
+    #   - connection
+
+# networks:
+#   connection:
+#     driver: bridge
+
+volumes: #define our mysql volume used above
+  mysql-data:
